@@ -1,0 +1,51 @@
+{
+  "constellations": [
+    {
+      "name": "Test Constellation",
+      "starts": [
+        {
+          "id": 1,
+          "name": "Star A",
+          "linkedTo": [
+            {
+              "starId": 2,
+              "distance": 5.0
+            }
+          ],
+          "radius": 10.0,
+          "timeToEat": 2.0,
+          "amountOfEnergy": 15.0,
+          "coordenates": {
+            "x": 100.0,
+            "y": 100.0
+          },
+          "hypergiant": false
+        },
+        {
+          "id": 2,
+          "name": "Star B",
+          "linkedTo": [
+            {
+              "starId": 1,
+              "distance": 5.0
+            }
+          ],
+          "radius": 8.0,
+          "timeToEat": 1.5,
+          "amountOfEnergy": 10.0,
+          "coordenates": {
+            "x": 200.0,
+            "y": 150.0
+          },
+          "hypergiant": false
+        }
+      ]
+    }
+  ],
+  "burroenergiaInicial": 80.0,
+  "estadoSalud": "Excelente",
+  "pasto": 50.0,
+  "number": 1,
+  "startAge": 0.0,
+  "deathAge": 100.0
+}
