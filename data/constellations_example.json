@@ -1,0 +1,408 @@
+{
+  "constellations": [
+    {
+      "name": "Constelación del Burro",
+      "starts": [
+        {
+          "id": 1,
+          "label": "Alpha1",
+          "linkedTo": [
+            {
+              "starId": 2,
+              "distance": 120
+            },
+            {
+              "starId": 4,
+              "distance": 87
+            },
+            {
+              "starId": 5,
+              "distance": 101
+            }
+          ],
+          "radius": 0.4,
+          "timeToEat": 3,
+          "amountOfEnergy": 1,
+          "coordenates": {
+            "x": 25,
+            "y": 34
+          },
+          "hypergiant": false,
+          "lifeYearsGained": 0,
+          "lifeYearsLost": 0
+        },
+        {
+          "id": 2,
+          "label": "Beta23",
+          "linkedTo": [
+            {
+              "starId": 1,
+              "distance": 120
+            },
+            {
+              "starId": 7,
+              "distance": 45
+            },
+            {
+              "starId": 3,
+              "distance": 17
+            }
+          ],
+          "radius": 0.2,
+          "timeToEat": 2,
+          "amountOfEnergy": 2,
+          "coordenates": {
+            "x": 37,
+            "y": 15
+          },
+          "hypergiant": false,
+          "lifeYearsGained": 0,
+          "lifeYearsLost": 0
+        },
+        {
+          "id": 3,
+          "label": "Alpha53",
+          "linkedTo": [
+            {
+              "starId": 5,
+              "distance": 86
+            },
+            {
+              "starId": 2,
+              "distance": 17
+            },
+            {
+              "starId": 9,
+              "distance": 15
+            }
+          ],
+          "radius": 1,
+          "timeToEat": 1,
+          "amountOfEnergy": 3,
+          "coordenates": {
+            "x": 75,
+            "y": 43
+          },
+          "hypergiant": true,
+          "lifeYearsGained": 10,
+          "lifeYearsLost": 0
+        },
+        {
+          "id": 4,
+          "label": "Gamma12",
+          "linkedTo": [
+            {
+              "starId": 1,
+              "distance": 87
+            },
+            {
+              "starId": 5,
+              "distance": 62
+            }
+          ],
+          "radius": 0.3,
+          "timeToEat": 2,
+          "amountOfEnergy": 1.5,
+          "coordenates": {
+            "x": 15,
+            "y": 60
+          },
+          "hypergiant": false,
+          "lifeYearsGained": 0,
+          "lifeYearsLost": 5
+        },
+        {
+          "id": 5,
+          "label": "Delta7",
+          "linkedTo": [
+            {
+              "starId": 1,
+              "distance": 101
+            },
+            {
+              "starId": 3,
+              "distance": 86
+            },
+            {
+              "starId": 4,
+              "distance": 62
+            }
+          ],
+          "radius": 0.5,
+          "timeToEat": 2.5,
+          "amountOfEnergy": 2,
+          "coordenates": {
+            "x": 50,
+            "y": 70
+          },
+          "hypergiant": false,
+          "lifeYearsGained": 0,
+          "lifeYearsLost": 0
+        },
+        {
+          "id": 7,
+          "label": "Epsilon9",
+          "linkedTo": [
+            {
+              "starId": 2,
+              "distance": 45
+            },
+            {
+              "starId": 8,
+              "distance": 30
+            }
+          ],
+          "radius": 0.6,
+          "timeToEat": 3,
+          "amountOfEnergy": 2.5,
+          "coordenates": {
+            "x": 90,
+            "y": 10
+          },
+          "hypergiant": false,
+          "lifeYearsGained": 0,
+          "lifeYearsLost": 0
+        },
+        {
+          "id": 8,
+          "label": "Zeta15",
+          "linkedTo": [
+            {
+              "starId": 7,
+              "distance": 30
+            },
+            {
+              "starId": 9,
+              "distance": 40
+            }
+          ],
+          "radius": 0.4,
+          "timeToEat": 2,
+          "amountOfEnergy": 1,
+          "coordenates": {
+            "x": 110,
+            "y": 25
+          },
+          "hypergiant": false,
+          "lifeYearsGained": 5,
+          "lifeYearsLost": 0
+        },
+        {
+          "id": 9,
+          "label": "Eta21",
+          "linkedTo": [
+            {
+              "starId": 3,
+              "distance": 15
+            },
+            {
+              "starId": 8,
+              "distance": 40
+            }
+          ],
+          "radius": 0.7,
+          "timeToEat": 3.5,
+          "amountOfEnergy": 3,
+          "coordenates": {
+            "x": 95,
+            "y": 50
+          },
+          "hypergiant": false,
+          "lifeYearsGained": 0,
+          "lifeYearsLost": 0
+        }
+      ]
+    },
+    {
+      "name": "Constelación de la Araña",
+      "starts": [
+        {
+          "id": 12,
+          "label": "Beta178",
+          "linkedTo": [
+            {
+              "starId": 14,
+              "distance": 120
+            },
+            {
+              "starId": 17,
+              "distance": 87
+            },
+            {
+              "starId": 11,
+              "distance": 101
+            }
+          ],
+          "radius": 0.6,
+          "timeToEat": 3,
+          "amountOfEnergy": 1,
+          "coordenates": {
+            "x": 123,
+            "y": 167
+          },
+          "hypergiant": false,
+          "lifeYearsGained": 0,
+          "lifeYearsLost": 0
+        },
+        {
+          "id": 13,
+          "label": "Gama23",
+          "linkedTo": [
+            {
+              "starId": 15,
+              "distance": 120
+            },
+            {
+              "starId": 17,
+              "distance": 45
+            }
+          ],
+          "radius": 0.8,
+          "timeToEat": 3,
+          "amountOfEnergy": 5,
+          "coordenates": {
+            "x": 189,
+            "y": 146
+          },
+          "hypergiant": true,
+          "lifeYearsGained": 15,
+          "lifeYearsLost": 0
+        },
+        {
+          "id": 3,
+          "label": "Alpha53",
+          "linkedTo": [
+            {
+              "starId": 12,
+              "distance": 15
+            }
+          ],
+          "radius": 1,
+          "timeToEat": 1,
+          "amountOfEnergy": 3,
+          "coordenates": {
+            "x": 75,
+            "y": 43
+          },
+          "hypergiant": true,
+          "lifeYearsGained": 10,
+          "lifeYearsLost": 0
+        },
+        {
+          "id": 11,
+          "label": "Theta5",
+          "linkedTo": [
+            {
+              "starId": 12,
+              "distance": 101
+            },
+            {
+              "starId": 14,
+              "distance": 55
+            }
+          ],
+          "radius": 0.5,
+          "timeToEat": 2.5,
+          "amountOfEnergy": 2,
+          "coordenates": {
+            "x": 140,
+            "y": 100
+          },
+          "hypergiant": false,
+          "lifeYearsGained": 0,
+          "lifeYearsLost": 3
+        },
+        {
+          "id": 14,
+          "label": "Iota11",
+          "linkedTo": [
+            {
+              "starId": 12,
+              "distance": 120
+            },
+            {
+              "starId": 11,
+              "distance": 55
+            },
+            {
+              "starId": 15,
+              "distance": 70
+            }
+          ],
+          "radius": 0.4,
+          "timeToEat": 2,
+          "amountOfEnergy": 1.5,
+          "coordenates": {
+            "x": 170,
+            "y": 120
+          },
+          "hypergiant": false,
+          "lifeYearsGained": 0,
+          "lifeYearsLost": 0
+        },
+        {
+          "id": 15,
+          "label": "Kappa17",
+          "linkedTo": [
+            {
+              "starId": 13,
+              "distance": 120
+            },
+            {
+              "starId": 14,
+              "distance": 70
+            },
+            {
+              "starId": 17,
+              "distance": 35
+            }
+          ],
+          "radius": 0.6,
+          "timeToEat": 3,
+          "amountOfEnergy": 2.5,
+          "coordenates": {
+            "x": 195,
+            "y": 110
+          },
+          "hypergiant": false,
+          "lifeYearsGained": 8,
+          "lifeYearsLost": 0
+        },
+        {
+          "id": 17,
+          "label": "Lambda22",
+          "linkedTo": [
+            {
+              "starId": 12,
+              "distance": 87
+            },
+            {
+              "starId": 13,
+              "distance": 45
+            },
+            {
+              "starId": 15,
+              "distance": 35
+            }
+          ],
+          "radius": 0.7,
+          "timeToEat": 3.5,
+          "amountOfEnergy": 3,
+          "coordenates": {
+            "x": 175,
+            "y": 155
+          },
+          "hypergiant": false,
+          "lifeYearsGained": 0,
+          "lifeYearsLost": 0
+        }
+      ]
+    }
+  ],
+  "burroenergiaInicial": 100,
+  "estadoSalud": "Excelente",
+  "pasto": 300,
+  "number": 123,
+  "startAge": 12,
+  "deathAge": 3567
+}
