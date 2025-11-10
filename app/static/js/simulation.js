@@ -72,8 +72,9 @@ class SimulationController {
                 // Actualizar UI
                 this.updateDonkeyPanel(this.donkeyState);
                 
-                // Mostrar posición del burro en el grafo
+                // Mostrar posición del burro en el grafo y actualizar estrellas visitadas
                 if (graphVisualizer) {
+                    graphVisualizer.visitedStars = this.donkeyState.visited_stars || [];
                     graphVisualizer.showDonkeyPosition(step.current_star.id);
                 }
                 

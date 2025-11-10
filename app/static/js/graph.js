@@ -9,6 +9,7 @@ class SpaceGraphVisualizer {
         this.height = height;
         this.graphData = null;
         this.simulation = null;
+        this.visitedStars = [];
         
         // Grupos para organizar elementos
         this.g = this.svg.append('g');
@@ -228,37 +229,74 @@ class SpaceGraphVisualizer {
         const node = this.graphData.nodes.find(n => n.id === starId);
         if (!node) return;
         
-        // Remover burro anterior
-        this.nodesGroup.selectAll('.donkey-marker').remove();
+        // Verificar si ya existe un marcador del burro
+        const existingMarker = this.nodesGroup.select('.donkey-marker');
+        const existingLabel = this.labelsGroup.select('.donkey-label');
         
-        // Agregar marcador del burro
-        this.nodesGroup.append('circle')
-            .attr('class', 'donkey-marker')
-            .attr('cx', node.fx)
-            .attr('cy', node.fy)
-            .attr('r', 15)
-            .attr('fill', '#22c55e')
-            .attr('stroke', '#fff')
-            .attr('stroke-width', 3)
-            .style('animation', 'pulse 1s infinite');
+        if (!existingMarker.empty()) {
+            // Animar la transición
+            existingMarker
+                .transition()
+                .duration(800)
+                .attr('cx', node.fx)
+                .attr('cy', node.fy);
+            
+            existingLabel
+                .transition()
+                .duration(800)
+                .attr('x', node.fx)
+                .attr('y', node.fy);
+        } else {
+            // Crear nuevo marcador del burro
+            this.nodesGroup.append('circle')
+                .attr('class', 'donkey-marker')
+                .attr('cx', node.fx)
+                .attr('cy', node.fy)
+                .attr('r', 15)
+                .attr('fill', '#22c55e')
+                .attr('stroke', '#fff')
+                .attr('stroke-width', 3)
+                .style('opacity', 0)
+                .transition()
+                .duration(500)
+                .style('opacity', 1);
+            
+            // Agregar emoji del burro
+            this.labelsGroup.append('text')
+                .attr('class', 'donkey-label')
+                .attr('x', node.fx)
+                .attr('y', node.fy)
+                .attr('text-anchor', 'middle')
+                .attr('dy', '0.3em')
+                .attr('font-size', '24px')
+                .style('opacity', 0)
+                .text('🫏')
+                .transition()
+                .duration(500)
+                .style('opacity', 1);
+        }
         
-        // Agregar emoji del burro
-        this.labelsGroup.append('text')
-            .attr('class', 'donkey-marker')
-            .attr('x', node.fx)
-            .attr('y', node.fy)
-            .attr('text-anchor', 'middle')
-            .attr('dy', '0.3em')
-            .attr('font-size', '20px')
-            .text('🫏');
+        // Marcar estrella actual
+        this.nodesGroup.selectAll('circle:not(.donkey-marker)')
+            .classed('current-star', d => d.id === starId)
+            .classed('visited-star', d => d.id !== starId && this.isStarVisited(d.id));
+    }
+    
+    isStarVisited(starId) {
+        // Verifica si una estrella ha sido visitada por el burro
+        return this.visitedStars && this.visitedStars.includes(starId);
     }
     
     reset() {
         // Restaurar estado original
-        this.nodesGroup.selectAll('circle')
+        this.visitedStars = [];
+        
+        this.nodesGroup.selectAll('circle:not(.donkey-marker)')
             .attr('opacity', 0.9)
             .attr('stroke', d => d.hypergiant ? '#fbbf24' : '#fff')
-            .attr('stroke-width', d => d.hypergiant ? 4 : 2);
+            .attr('stroke-width', d => d.hypergiant ? 4 : 2)
+            .classed('current-star', false)
+            .classed('visited-star', false);
         
         this.linksGroup.selectAll('line')
             .attr('stroke', '#4a5568')
@@ -266,7 +304,7 @@ class SpaceGraphVisualizer {
             .attr('stroke-opacity', 0.6);
         
         this.nodesGroup.selectAll('.donkey-marker').remove();
-        this.labelsGroup.selectAll('.donkey-marker').remove();
+        this.labelsGroup.selectAll('.donkey-label').remove();
     }
 }
 

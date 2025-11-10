@@ -9,6 +9,11 @@ from app.graph_logic import SpaceGraph
 class DonkeySimulation:
     """Simula el viaje del burro paso a paso"""
     
+    # Factor de consumo de energía por año luz viajado
+    # Puedes ajustar este valor para cambiar la dificultad
+    # 1.0 = 1% de energía por año luz
+    ENERGY_CONSUMPTION_PER_LIGHT_YEAR = 1.0
+    
     def __init__(self, graph: SpaceGraph, route: List[int], initial_state: DonkeyState):
         self.graph = graph
         self.route = route
@@ -30,14 +35,16 @@ class DonkeySimulation:
         
         if self.current_step == 0:
             # Primer paso: el burro está en la estrella de origen
-            return SimulationStep(
+            self.state.visited_stars.append(current_star_id)
+            self.state.current_star_id = current_star_id
+            
+            step = SimulationStep(
                 step=self.current_step,
                 current_star=current_star,
                 donkey_state=self.state,
                 action='start',
                 message=f'🚀 El burro inicia su viaje en la estrella {current_star.get_label()}'
             )
-            self.state.visited_stars.append(current_star_id)
             self.current_step += 1
             self.simulation_log.append(step)
             return step
@@ -50,11 +57,33 @@ class DonkeySimulation:
         neighbors = self.graph.get_neighbors(previous_star_id)
         distance = next((d for nid, d in neighbors if nid == next_star_id), 0)
         
+        # Consumir energía por el viaje (basado en la distancia)
+        # Fórmula: distancia * factor de consumo
+        energy_consumed_by_travel = distance * self.ENERGY_CONSUMPTION_PER_LIGHT_YEAR
+        self.state.energy -= energy_consumed_by_travel
+        
         # Actualizar edad (tiempo de vida)
         self.state.age += distance
         message = f'🌟 Viajando de {self.graph.get_star(previous_star_id).get_label()} a {current_star.get_label()} ({distance:.2f} años luz)'
+        message += f'\n⚡ El viaje consumió {energy_consumed_by_travel:.1f}% de energía'
         
-        # Verificar si el burro murió en el viaje
+        # Verificar si el burro murió en el viaje por falta de energía
+        if self.state.energy <= 0:
+            self.state.is_alive = False
+            self.state.health = 'Muerto'
+            self.is_complete = True
+            
+            step = SimulationStep(
+                step=self.current_step,
+                current_star=current_star,
+                donkey_state=self.state,
+                action='death_by_energy_travel',
+                message=f'💀 El burro murió en el viaje por falta de energía. Distancia recorrida: {distance:.2f} años luz'
+            )
+            self.simulation_log.append(step)
+            return step
+        
+        # Verificar si el burro murió en el viaje por edad
         if self.state.age >= self.state.death_age:
             self.state.is_alive = False
             self.state.health = 'Muerto'
@@ -72,10 +101,15 @@ class DonkeySimulation:
         
         # Llegar a la estrella
         self.state.visited_stars.append(current_star_id)
+        self.state.current_star_id = current_star_id
         
-        # Realizar investigación (consume energía)
+        # Actualizar estado de salud antes de investigación
+        self.state.health = self._calculate_health()
+        
+        # Realizar investigación (consume energía adicional)
+        energy_before_research = self.state.energy
         self.state.energy -= current_star.amountOfEnergy
-        message += f'\n🔬 Investigación consumió {current_star.amountOfEnergy:.1f}% de energía'
+        message += f'\n🔬 Investigación consumió {current_star.amountOfEnergy:.1f}% de energía (Total consumido: {energy_consumed_by_travel + current_star.amountOfEnergy:.1f}%)'
         
         # Aplicar efectos de investigación (ganancia/pérdida de vida)
         life_change = current_star.lifeYearsGained - current_star.lifeYearsLost

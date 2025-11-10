@@ -42,10 +42,10 @@
       ]
     }
   ],
-  "burroenergiaInicial": 80.0,
+  "burroenergiaInicial": 100.0,
   "estadoSalud": "Excelente",
   "pasto": 50.0,
   "number": 1,
   "startAge": 0.0,
-  "deathAge": 100.0
+  "deathAge": 100.0 
 }
