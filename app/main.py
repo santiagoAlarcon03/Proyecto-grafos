@@ -10,7 +10,7 @@ from pydantic import ValidationError
 import json
 from typing import Optional
 
-from app.models import ConstellationData, RouteRequest, DonkeyState
+from app.models import ConstellationData, RouteRequest, DonkeyState, StartSimulationRequest
 from app.graph_logic import SpaceGraph
 from app.algorithms import RouteOptimizer
 from app.simulation import DonkeySimulation
@@ -204,7 +204,7 @@ async def calculate_route(request: RouteRequest):
 
 
 @app.post("/api/start-simulation")
-async def start_simulation(origin_star_id: int, route: list):
+async def start_simulation(request: StartSimulationRequest):
     """
     Inicia una simulación paso a paso con una ruta calculada
     """
@@ -218,7 +218,7 @@ async def start_simulation(origin_star_id: int, route: list):
     
     # Crear estado inicial del burro
     initial_state = DonkeyState(
-        current_star_id=origin_star_id,
+        current_star_id=request.origin_star_id,
         energy=current_data.burroenergiaInicial,
         health=current_data.estadoSalud,
         grass=current_data.pasto,
@@ -229,12 +229,12 @@ async def start_simulation(origin_star_id: int, route: list):
     )
     
     # Crear simulación
-    current_simulation = DonkeySimulation(current_graph, route, initial_state)
+    current_simulation = DonkeySimulation(current_graph, request.route, initial_state)
     
     return JSONResponse({
         "success": True,
         "message": "Simulación iniciada",
-        "total_steps": len(route)
+        "total_steps": len(request.route)
     })
 
 

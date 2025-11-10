@@ -118,6 +118,12 @@ class RouteRequest(BaseModel):
     algorithm: str = Field(pattern="^(maximize_stars|minimize_cost)$")
     
     
+class StartSimulationRequest(BaseModel):
+    """Solicitud para iniciar una simulación"""
+    origin_star_id: int
+    route: List[int]
+
+
 class SimulationStep(BaseModel):
     """Paso de la simulación"""
     step: int
