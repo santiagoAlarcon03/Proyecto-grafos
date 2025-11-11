@@ -68,8 +68,8 @@ class RouteOptimizer:
                     }
                 return
             
-            # Intentar visitar vecinos no visitados
-            neighbors = self.graph.get_neighbors(current_star)
+            # Intentar visitar vecinos no visitados (excluyendo caminos bloqueados)
+            neighbors = self.graph.get_neighbors_unblocked(current_star)
             
             if not neighbors:
                 # Sin vecinos, actualizar mejor ruta si es necesario
@@ -163,7 +163,7 @@ class RouteOptimizer:
         # Si el burro terminó vivo (no murió), intentar agregar UNA estrella más aunque sea mortal
         if best_stats['cause_of_death'] is None and best_stats['final_energy'] > 0:
             last_star = best_route[-1] if best_route else origin
-            neighbors = self.graph.get_neighbors(last_star)
+            neighbors = self.graph.get_neighbors_unblocked(last_star)
             visited_stars = set(best_route)
             
             # Buscar el vecino más cercano no visitado
@@ -229,8 +229,8 @@ class RouteOptimizer:
         }
         
         while True:
-            # Obtener vecinos DIRECTOS no visitados
-            neighbors = self.graph.get_neighbors(current_star)
+            # Obtener vecinos DIRECTOS no visitados (excluyendo caminos bloqueados)
+            neighbors = self.graph.get_neighbors_unblocked(current_star)
             unvisited_neighbors = [(nid, dist) for nid, dist in neighbors if nid not in visited]
             
             if not unvisited_neighbors:

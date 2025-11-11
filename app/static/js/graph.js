@@ -10,6 +10,7 @@ class SpaceGraphVisualizer {
         this.graphData = null;
         this.simulation = null;
         this.visitedStars = [];
+        this.blockedPaths = new Set();  // Para rastrear caminos bloqueados
         
         // Grupos para organizar elementos
         this.g = this.svg.append('g');
@@ -62,14 +63,30 @@ class SpaceGraphVisualizer {
             node.fy = yScale(node.y);  // Fijar posición Y
         });
         
-        // Crear enlaces (aristas)
-        const links = this.linksGroup.selectAll('line')
+        // Crear enlaces (aristas) - primero las líneas invisibles gruesas para hover
+        const linkInvisible = this.linksGroup.selectAll('.edge-hover-area')
             .data(graphData.edges)
             .enter()
             .append('line')
-            .attr('stroke', '#4a5568')
-            .attr('stroke-width', 2)
-            .attr('stroke-opacity', 0.6);
+            .attr('class', 'edge-hover-area')
+            .attr('stroke', 'transparent')
+            .attr('stroke-width', 15)  // Área amplia para detectar hover
+            .style('cursor', 'pointer')
+            .on('mouseover', this.handleEdgeHover.bind(this))
+            .on('mouseout', this.handleEdgeOut.bind(this))
+            .on('click', this.handleEdgeClick.bind(this));
+        
+        // Luego las líneas visibles
+        const links = this.linksGroup.selectAll('.graph-edge')
+            .data(graphData.edges)
+            .enter()
+            .append('line')
+            .attr('class', 'graph-edge')
+            .attr('stroke', d => this.isEdgeBlocked(d) ? '#ef4444' : '#4a5568')
+            .attr('stroke-width', d => this.isEdgeBlocked(d) ? 3 : 2)
+            .attr('stroke-opacity', 0.6)
+            .attr('stroke-dasharray', d => this.isEdgeBlocked(d) ? '5,5' : '0')
+            .style('pointer-events', 'none');  // No capturar eventos, usamos las invisibles
         
         // Crear nodos (estrellas)
         const nodes = this.nodesGroup.selectAll('circle')
@@ -107,8 +124,27 @@ class SpaceGraphVisualizer {
             .force('charge', d3.forceManyBody().strength(-300))
             .force('center', d3.forceCenter(this.width / 2, this.height / 2))
             .on('tick', () => {
-                // Actualizar posiciones de enlaces
+                // Actualizar posiciones de enlaces visibles
                 links
+                    .attr('x1', d => {
+                        const source = graphData.nodes.find(n => n.id === d.source.id || n.id === d.source);
+                        return source ? source.fx : 0;
+                    })
+                    .attr('y1', d => {
+                        const source = graphData.nodes.find(n => n.id === d.source.id || n.id === d.source);
+                        return source ? source.fy : 0;
+                    })
+                    .attr('x2', d => {
+                        const target = graphData.nodes.find(n => n.id === d.target.id || n.id === d.target);
+                        return target ? target.fx : 0;
+                    })
+                    .attr('y2', d => {
+                        const target = graphData.nodes.find(n => n.id === d.target.id || n.id === d.target);
+                        return target ? target.fy : 0;
+                    });
+                
+                // Actualizar posiciones de enlaces invisibles (hover areas)
+                linkInvisible
                     .attr('x1', d => {
                         const source = graphData.nodes.find(n => n.id === d.source.id || n.id === d.source);
                         return source ? source.fx : 0;
@@ -167,6 +203,71 @@ class SpaceGraphVisualizer {
     handleNodeClick(event, d) {
         console.log('Estrella clickeada:', d);
         document.getElementById('originStar').value = d.id;
+    }
+    
+    handleEdgeHover(event, d) {
+        // Resaltar la línea
+        d3.select(event.target)
+            .transition()
+            .duration(200)
+            .attr('stroke-width', 5)
+            .attr('stroke-opacity', 0.9);
+        
+        // Obtener información de las estrellas
+        const source = typeof d.source === 'object' ? d.source : this.graphData.nodes.find(n => n.id === d.source);
+        const target = typeof d.target === 'object' ? d.target : this.graphData.nodes.find(n => n.id === d.target);
+        const isBlocked = this.isEdgeBlocked(d);
+        
+        // Mostrar tooltip
+        const tooltip = d3.select('body').append('div')
+            .attr('class', 'graph-tooltip edge-tooltip')
+            .style('position', 'absolute')
+            .style('background', 'rgba(0, 0, 0, 0.9)')
+            .style('color', 'white')
+            .style('padding', '10px')
+            .style('border-radius', '5px')
+            .style('pointer-events', 'none')
+            .style('font-size', '12px')
+            .style('z-index', '1000')
+            .html(`
+                <strong>Camino:</strong> ${source.label} ↔ ${target.label}<br>
+                <strong>Distancia:</strong> ${d.distance.toFixed(2)} años luz<br>
+                ${isBlocked ? '<span style="color: #ef4444;">⚠️ BLOQUEADO</span>' : '<span style="color: #10b981;">✓ Disponible</span>'}<br>
+                <em>Click para ${isBlocked ? 'desbloquear' : 'bloquear'}</em>
+            `)
+            .style('left', (event.pageX + 10) + 'px')
+            .style('top', (event.pageY - 10) + 'px');
+    }
+    
+    handleEdgeOut(event, d) {
+        // Restaurar apariencia de la línea
+        const isBlocked = this.isEdgeBlocked(d);
+        d3.select(event.target)
+            .transition()
+            .duration(200)
+            .attr('stroke-width', isBlocked ? 3 : 2)
+            .attr('stroke-opacity', 0.6);
+        
+        // Eliminar tooltips de líneas
+        d3.selectAll('.edge-tooltip').remove();
+    }
+    
+    handleEdgeClick(event, d) {
+        event.stopPropagation();
+        
+        const source = typeof d.source === 'object' ? d.source.id : d.source;
+        const target = typeof d.target === 'object' ? d.target.id : d.target;
+        const isBlocked = this.isEdgeBlocked(d);
+        
+        console.log(`Click en camino: ${source} ↔ ${target}, actualmente ${isBlocked ? 'bloqueado' : 'disponible'}`);
+        
+        // Llamar a la función global de bloqueo
+        if (window.togglePathBlock) {
+            window.togglePathBlock(source, target, !isBlocked);
+        } else {
+            console.error('togglePathBlock no está disponible');
+            alert('Error: Sistema de bloqueo no cargado. Recarga la página.');
+        }
     }
     
     showTooltip(event, data) {
@@ -298,13 +399,43 @@ class SpaceGraphVisualizer {
             .classed('current-star', false)
             .classed('visited-star', false);
         
-        this.linksGroup.selectAll('line')
-            .attr('stroke', '#4a5568')
-            .attr('stroke-width', 2)
-            .attr('stroke-opacity', 0.6);
+        // Restaurar líneas visibles respetando bloqueos
+        this.linksGroup.selectAll('.graph-edge')
+            .attr('stroke', d => this.isEdgeBlocked(d) ? '#ef4444' : '#4a5568')
+            .attr('stroke-width', d => this.isEdgeBlocked(d) ? 3 : 2)
+            .attr('stroke-opacity', 0.6)
+            .attr('stroke-dasharray', d => this.isEdgeBlocked(d) ? '5,5' : '0');
         
         this.nodesGroup.selectAll('.donkey-marker').remove();
         this.labelsGroup.selectAll('.donkey-label').remove();
+    }
+    
+    // Métodos para manejar caminos bloqueados
+    isEdgeBlocked(edge) {
+        const source = typeof edge.source === 'object' ? edge.source.id : edge.source;
+        const target = typeof edge.target === 'object' ? edge.target.id : edge.target;
+        const key1 = `${source}-${target}`;
+        const key2 = `${target}-${source}`;
+        return this.blockedPaths.has(key1) || this.blockedPaths.has(key2);
+    }
+    
+    updateBlockedPaths(blockedPathsList) {
+        // Actualizar conjunto de caminos bloqueados
+        this.blockedPaths.clear();
+        if (blockedPathsList && Array.isArray(blockedPathsList)) {
+            blockedPathsList.forEach(path => {
+                this.blockedPaths.add(`${path.from_star_id}-${path.to_star_id}`);
+            });
+        }
+        
+        // Actualizar visualización de enlaces visibles si existen
+        const links = this.linksGroup.selectAll('.graph-edge');
+        if (!links.empty()) {
+            links
+                .attr('stroke', d => this.isEdgeBlocked(d) ? '#ef4444' : '#4a5568')
+                .attr('stroke-width', d => this.isEdgeBlocked(d) ? 3 : 2)
+                .attr('stroke-dasharray', d => this.isEdgeBlocked(d) ? '5,5' : '0');
+        }
     }
 }
 

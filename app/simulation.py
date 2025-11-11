@@ -78,6 +78,46 @@ class DonkeySimulation:
         next_star_id = current_star_id
         previous_star_id = self.route[self.current_step - 1]
         
+        # VERIFICAR SI EL CAMINO ESTÁ BLOQUEADO
+        if self.graph.is_path_blocked(previous_star_id, next_star_id):
+            # Intentar recalcular la ruta
+            recalc_result = self.check_and_recalculate_if_blocked()
+            
+            if recalc_result and recalc_result['recalculated']:
+                # Ruta recalculada exitosamente
+                current_star = self.graph.get_star(previous_star_id)
+                step = SimulationStep(
+                    step=self.current_step,
+                    current_star=current_star,
+                    donkey_state=self.state,
+                    action='route_recalculated',
+                    message=recalc_result['message']
+                )
+                self.simulation_log.append(step)
+                
+                # Actualizar next_star_id al nuevo destino
+                next_star_id = self.route[self.current_step]
+                current_star_id = next_star_id
+            else:
+                # No hay ruta alternativa, el burro está atrapado
+                self.state.is_alive = False
+                self.state.health = 'Muerto'
+                self.is_complete = True
+                
+                current_star = self.graph.get_star(previous_star_id)
+                blocked_from = self.graph.get_star(previous_star_id).get_label()
+                blocked_to = self.graph.get_star(next_star_id).get_label()
+                
+                step = SimulationStep(
+                    step=self.current_step,
+                    current_star=current_star,
+                    donkey_state=self.state,
+                    action='death_by_blocked_path',
+                    message=f'💀 El burro murió porque el camino de {blocked_from} a {blocked_to} está bloqueado por cometas/meteoritos y no hay ruta alternativa disponible.'
+                )
+                self.simulation_log.append(step)
+                return step
+        
         # Calcular distancia del viaje
         neighbors = self.graph.get_neighbors(previous_star_id)
         distance = next((d for nid, d in neighbors if nid == next_star_id), 0)
@@ -229,6 +269,57 @@ class DonkeySimulation:
                 self.is_complete = True
         
         return step
+    
+    def check_and_recalculate_if_blocked(self) -> Optional[Dict]:
+        """
+        Verifica si el próximo paso está bloqueado y recalcula la ruta si es necesario.
+        Retorna información sobre el recálculo o None si no hay bloqueo.
+        """
+        if self.is_complete or self.current_step >= len(self.route):
+            return None
+        
+        # Obtener estrella actual y próxima
+        if self.current_step == 0:
+            # Primer paso, no hay camino que verificar
+            return None
+        
+        current_star_id = self.route[self.current_step - 1]
+        next_star_id = self.route[self.current_step]
+        
+        # Verificar si el camino está bloqueado
+        if self.graph.is_path_blocked(current_star_id, next_star_id):
+            # El camino está bloqueado, necesitamos recalcular
+            # Obtener la estrella destino final de la ruta original
+            final_destination = self.route[-1]
+            
+            # Intentar encontrar un nuevo camino desde la posición actual al destino
+            new_path, distance = self.graph.shortest_path(current_star_id, final_destination)
+            
+            if not new_path or distance == float('inf'):
+                # No hay camino alternativo disponible
+                return {
+                    'recalculated': False,
+                    'blocked_from': current_star_id,
+                    'blocked_to': next_star_id,
+                    'reason': 'no_alternative_path',
+                    'message': f'⚠️ Camino bloqueado y no hay ruta alternativa disponible. El burro está atrapado.'
+                }
+            
+            # Reemplazar la ruta restante con el nuevo camino
+            # Mantener las estrellas ya visitadas y agregar el nuevo camino
+            visited_route = self.route[:self.current_step]
+            self.route = visited_route + new_path
+            
+            return {
+                'recalculated': True,
+                'blocked_from': current_star_id,
+                'blocked_to': next_star_id,
+                'new_path': new_path,
+                'new_distance': distance,
+                'message': f'🔄 Ruta recalculada debido a bloqueo. Nueva ruta encontrada ({len(new_path)} estrellas, {distance:.2f} años luz)'
+            }
+        
+        return None
     
     def run_full_simulation(self) -> List[SimulationStep]:
         """Ejecuta toda la simulación de una vez"""

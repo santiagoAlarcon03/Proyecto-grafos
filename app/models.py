@@ -126,3 +126,11 @@ class SimulationStep(BaseModel):
     donkey_state: DonkeyState
     action: str
     message: str
+
+
+class BlockPathRequest(BaseModel):
+    """Solicitud para bloquear/desbloquear un camino entre estrellas"""
+    from_star_id: int
+    to_star_id: int
+    block: bool = True  # True = bloquear, False = desbloquear
+    reason: Optional[str] = "Paso de cometas y meteoritos"

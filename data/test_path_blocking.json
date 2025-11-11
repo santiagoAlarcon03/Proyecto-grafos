@@ -1,0 +1,90 @@
+{
+  "constellations": [
+    {
+      "name": "Path Blocking Test",
+      "starts": [
+        {
+          "id": 1,
+          "name": "Alpha",
+          "linkedTo": [
+            {"starId": 2, "distance": 5.0},
+            {"starId": 3, "distance": 10.0}
+          ],
+          "radius": 0.5,
+          "timeToEat": 1.0,
+          "amountOfEnergy": 5.0,
+          "coordenates": {"x": 0, "y": 0},
+          "hypergiant": false,
+          "lifeYearsGained": 2.0,
+          "lifeYearsLost": 0.0
+        },
+        {
+          "id": 2,
+          "name": "Beta",
+          "linkedTo": [
+            {"starId": 1, "distance": 5.0},
+            {"starId": 4, "distance": 5.0}
+          ],
+          "radius": 0.4,
+          "timeToEat": 1.0,
+          "amountOfEnergy": 5.0,
+          "coordenates": {"x": 10, "y": 0},
+          "hypergiant": false,
+          "lifeYearsGained": 1.0,
+          "lifeYearsLost": 0.0
+        },
+        {
+          "id": 3,
+          "name": "Gamma",
+          "linkedTo": [
+            {"starId": 1, "distance": 10.0},
+            {"starId": 4, "distance": 5.0}
+          ],
+          "radius": 0.4,
+          "timeToEat": 1.0,
+          "amountOfEnergy": 5.0,
+          "coordenates": {"x": 0, "y": 10},
+          "hypergiant": false,
+          "lifeYearsGained": 1.0,
+          "lifeYearsLost": 0.0
+        },
+        {
+          "id": 4,
+          "name": "Delta",
+          "linkedTo": [
+            {"starId": 2, "distance": 5.0},
+            {"starId": 3, "distance": 5.0},
+            {"starId": 5, "distance": 8.0}
+          ],
+          "radius": 0.5,
+          "timeToEat": 1.0,
+          "amountOfEnergy": 8.0,
+          "coordenates": {"x": 10, "y": 10},
+          "hypergiant": false,
+          "lifeYearsGained": 3.0,
+          "lifeYearsLost": 0.0
+        },
+        {
+          "id": 5,
+          "name": "Epsilon",
+          "linkedTo": [
+            {"starId": 4, "distance": 8.0}
+          ],
+          "radius": 0.6,
+          "timeToEat": 1.0,
+          "amountOfEnergy": 10.0,
+          "coordenates": {"x": 20, "y": 10},
+          "hypergiant": true,
+          "lifeYearsGained": 5.0,
+          "lifeYearsLost": 0.0
+        }
+      ]
+    }
+  ],
+  "burroenergiaInicial": 100.0,
+  "estadoSalud": "Excelente",
+  "pasto": 50.0,
+  "number": 1,
+  "startAge": 0.0,
+  "deathAge": 100.0
+}

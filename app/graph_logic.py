@@ -14,6 +14,7 @@ class SpaceGraph:
         self.graph = nx.Graph()
         self.stars_dict: Dict[int, Star] = {}
         self.constellation_map: Dict[int, List[str]] = {}  # star_id -> [constellation_names]
+        self.blocked_paths: Set[Tuple[int, int]] = set()  # Caminos bloqueados
         self._build_graph()
     
     def _build_graph(self):
@@ -161,12 +162,30 @@ class SpaceGraph:
     
     def shortest_path(self, source: int, target: int) -> Tuple[List[int], float]:
         """
-        Calcula el camino más corto entre dos estrellas usando Dijkstra
+        Calcula el camino más corto entre dos estrellas usando Dijkstra,
+        respetando los caminos bloqueados.
         Retorna (path, total_distance)
         """
+        # Si no hay caminos bloqueados, usar NetworkX directamente
+        if not self.blocked_paths:
+            try:
+                path = nx.shortest_path(self.graph, source, target, weight='weight')
+                distance = nx.shortest_path_length(self.graph, source, target, weight='weight')
+                return path, distance
+            except nx.NetworkXNoPath:
+                return [], float('inf')
+        
+        # Si hay caminos bloqueados, crear una vista del grafo sin esas aristas
+        # Crear lista de aristas bloqueadas
+        blocked_edges = [(from_id, to_id) for from_id, to_id in self.blocked_paths]
+        
+        # Crear una copia del grafo sin las aristas bloqueadas
+        temp_graph = self.graph.copy()
+        temp_graph.remove_edges_from(blocked_edges)
+        
         try:
-            path = nx.shortest_path(self.graph, source, target, weight='weight')
-            distance = nx.shortest_path_length(self.graph, source, target, weight='weight')
+            path = nx.shortest_path(temp_graph, source, target, weight='weight')
+            distance = nx.shortest_path_length(temp_graph, source, target, weight='weight')
             return path, distance
         except nx.NetworkXNoPath:
             return [], float('inf')
@@ -178,3 +197,36 @@ class SpaceGraph:
     def get_all_stars(self) -> List[int]:
         """Obtiene lista de todos los IDs de estrellas"""
         return list(self.graph.nodes())
+    
+    # ===== MÉTODOS PARA BLOQUEO DE CAMINOS =====
+    
+    def block_path(self, from_id: int, to_id: int):
+        """Bloquea un camino entre dos estrellas (bidireccional)"""
+        self.blocked_paths.add((from_id, to_id))
+        self.blocked_paths.add((to_id, from_id))
+    
+    def unblock_path(self, from_id: int, to_id: int):
+        """Desbloquea un camino entre dos estrellas (bidireccional)"""
+        self.blocked_paths.discard((from_id, to_id))
+        self.blocked_paths.discard((to_id, from_id))
+    
+    def is_path_blocked(self, from_id: int, to_id: int) -> bool:
+        """Verifica si un camino está bloqueado"""
+        return (from_id, to_id) in self.blocked_paths
+    
+    def get_blocked_paths(self) -> List[Tuple[int, int]]:
+        """Obtiene lista de caminos bloqueados (solo una dirección por par)"""
+        seen = set()
+        unique_paths = []
+        for from_id, to_id in self.blocked_paths:
+            pair = tuple(sorted([from_id, to_id]))
+            if pair not in seen:
+                seen.add(pair)
+                unique_paths.append((from_id, to_id))
+        return unique_paths
+    
+    def get_neighbors_unblocked(self, star_id: int) -> List[Tuple[int, float]]:
+        """Obtiene vecinos de una estrella excluyendo caminos bloqueados"""
+        all_neighbors = self.get_neighbors(star_id)
+        return [(nid, dist) for nid, dist in all_neighbors 
+                if not self.is_path_blocked(star_id, nid)]

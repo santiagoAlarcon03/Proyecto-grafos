@@ -5,6 +5,7 @@
 let currentGraphData = null;
 let currentRoute = null;
 let donkeyInitialState = null;
+let blockedPathsList = [];
 
 // Event Listeners
 document.addEventListener('DOMContentLoaded', () => {
@@ -80,6 +81,9 @@ async function loadJSONFile() {
             
             // Mostrar estadísticas
             displayStatistics(data.statistics);
+            
+            // Cargar caminos bloqueados inicialmente
+            await loadBlockedPaths();
             
             showSuccess('Archivo cargado exitosamente');
         }
@@ -312,3 +316,97 @@ function getEnergyColor(energy) {
     if (energy >= 25) return 'bg-yellow-500';
     return 'bg-red-500';
 }
+
+// ===== FUNCIONES PARA BLOQUEO DE CAMINOS =====
+
+async function togglePathBlock(fromStarId, toStarId, shouldBlock) {
+    if (!currentGraphData) {
+        showError('Primero debes cargar un archivo JSON');
+        return;
+    }
+    
+    try {
+        const response = await fetch('/api/block-path', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                from_star_id: fromStarId,
+                to_star_id: toStarId,
+                block: shouldBlock,
+                reason: shouldBlock ? 'Paso de cometas/meteoritos' : 'Ruta despejada'
+            })
+        });
+        
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.detail || 'Error al modificar camino');
+        }
+        
+        const data = await response.json();
+        if (data.success) {
+            await loadBlockedPaths();
+            showSuccess(data.message);
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        showError(error.message);
+    }
+}
+
+async function loadBlockedPaths() {
+    if (!currentGraphData) return;
+    
+    try {
+        const response = await fetch('/api/blocked-paths');
+        if (!response.ok) return;
+        
+        const data = await response.json();
+        blockedPathsList = data.blocked_paths || [];
+        
+        // Actualizar visualización
+        if (graphVisualizer && graphVisualizer.updateBlockedPaths) {
+            graphVisualizer.updateBlockedPaths(blockedPathsList);
+        }
+        
+        // Actualizar panel
+        updateBlockedPathsPanel();
+    } catch (error) {
+        console.error('Error al cargar caminos bloqueados:', error);
+    }
+}
+
+function updateBlockedPathsPanel() {
+    const panel = document.getElementById('blockedPathsPanel');
+    const list = document.getElementById('blockedPathsList');
+    
+    if (!panel || !list) return;
+    
+    if (blockedPathsList.length === 0) {
+        panel.classList.add('hidden');
+        return;
+    }
+    
+    panel.classList.remove('hidden');
+    list.innerHTML = '';
+    
+    blockedPathsList.forEach(path => {
+        const item = document.createElement('div');
+        item.className = 'flex items-center justify-between p-2 bg-red-900 bg-opacity-30 rounded border border-red-700';
+        item.innerHTML = `
+            <div class="flex-1">
+                <span class="text-sm">⚠️ ${path.path}</span>
+            </div>
+            <button 
+                onclick="togglePathBlock(${path.from_star_id}, ${path.to_star_id}, false)"
+                class="px-2 py-1 bg-green-600 hover:bg-green-700 rounded text-xs transition-colors"
+            >
+                Desbloquear
+            </button>
+        `;
+        list.appendChild(item);
+    });
+}
+
+// Hacer disponible globalmente
+window.togglePathBlock = togglePathBlock;
+window.loadBlockedPaths = loadBlockedPaths;

@@ -10,7 +10,7 @@ from pydantic import ValidationError
 import json
 from typing import Optional
 
-from app.models import ConstellationData, RouteRequest, DonkeyState
+from app.models import ConstellationData, RouteRequest, DonkeyState, BlockPathRequest
 from app.graph_logic import SpaceGraph
 from app.algorithms import RouteOptimizer
 from app.simulation import DonkeySimulation
@@ -393,6 +393,92 @@ async def get_hypergiant_stars():
     return JSONResponse({
         "count": len(hypergiants),
         "hypergiants": hypergiants
+    })
+
+
+@app.post("/api/block-path")
+async def block_path(request: BlockPathRequest):
+    """Bloquea o desbloquea un camino entre dos estrellas"""
+    if current_graph is None:
+        raise HTTPException(
+            status_code=400,
+            detail="Primero debe cargar un archivo JSON"
+        )
+    
+    # Verificar que ambas estrellas existen
+    if request.from_star_id not in current_graph.get_all_stars():
+        raise HTTPException(
+            status_code=404,
+            detail=f"Estrella origen {request.from_star_id} no encontrada"
+        )
+    if request.to_star_id not in current_graph.get_all_stars():
+        raise HTTPException(
+            status_code=404,
+            detail=f"Estrella destino {request.to_star_id} no encontrada"
+        )
+    
+    # Verificar que existe una conexión entre las estrellas
+    neighbors = current_graph.get_neighbors(request.from_star_id)
+    if not any(nid == request.to_star_id for nid, _ in neighbors):
+        raise HTTPException(
+            status_code=400,
+            detail=f"No existe conexión directa entre estrellas {request.from_star_id} y {request.to_star_id}"
+        )
+    
+    # Bloquear o desbloquear
+    if request.block:
+        current_graph.block_path(request.from_star_id, request.to_star_id)
+        action = "bloqueado"
+    else:
+        current_graph.unblock_path(request.from_star_id, request.to_star_id)
+        action = "desbloqueado"
+    
+    star_from = current_graph.get_star(request.from_star_id)
+    star_to = current_graph.get_star(request.to_star_id)
+    
+    return JSONResponse({
+        "success": True,
+        "message": f"Camino {action}: {star_from.get_label()} ↔ {star_to.get_label()}",
+        "reason": request.reason,
+        "from_star": {
+            "id": request.from_star_id,
+            "label": star_from.get_label()
+        },
+        "to_star": {
+            "id": request.to_star_id,
+            "label": star_to.get_label()
+        },
+        "blocked": request.block
+    })
+
+
+@app.get("/api/blocked-paths")
+async def get_blocked_paths():
+    """Obtiene la lista de todos los caminos actualmente bloqueados"""
+    if current_graph is None:
+        raise HTTPException(
+            status_code=400,
+            detail="Primero debe cargar un archivo JSON"
+        )
+    
+    blocked_paths = current_graph.get_blocked_paths()
+    
+    # Convertir a formato legible
+    blocked_list = []
+    for from_id, to_id in blocked_paths:
+        star_from = current_graph.get_star(from_id)
+        star_to = current_graph.get_star(to_id)
+        blocked_list.append({
+            "from_star_id": from_id,
+            "to_star_id": to_id,
+            "from_star_label": star_from.get_label(),
+            "to_star_label": star_to.get_label(),
+            "path": f"{star_from.get_label()} ↔ {star_to.get_label()}"
+        })
+    
+    return JSONResponse({
+        "count": len(blocked_list),
+        "blocked_paths": blocked_list
     })
 
 
