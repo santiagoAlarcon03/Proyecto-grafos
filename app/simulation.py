@@ -27,7 +27,32 @@ class DonkeySimulation:
         Ejecuta el siguiente paso de la simulación
         Retorna información sobre el paso actual
         """
-        if self.is_complete or self.current_step >= len(self.route):
+        if self.is_complete:
+            return None
+        
+        # Si llegó al final de la ruta pero aún está vivo, crear paso final de muerte
+        if self.current_step >= len(self.route):
+            if self.state.is_alive and self.state.energy > 0:
+                # Crear paso final donde el burro muere por agotamiento
+                last_star_id = self.route[-1]
+                last_star = self.graph.get_star(last_star_id)
+                
+                # Consumir toda la energía restante
+                self.state.energy = 0
+                self.state.is_alive = False
+                self.state.health = 'Muerto'
+                self.is_complete = True
+                
+                step = SimulationStep(
+                    step=self.current_step,
+                    current_star=last_star,
+                    donkey_state=self.state,
+                    action='death_by_exhaustion',
+                    message=f'💀 El burro murió por agotamiento extremo en {last_star.get_label()}. No puede continuar sin energía suficiente.'
+                )
+                
+                self.simulation_log.append(step)
+                return step
             return None
         
         current_star_id = self.route[self.current_step]
@@ -111,6 +136,22 @@ class DonkeySimulation:
         self.state.energy -= current_star.amountOfEnergy
         message += f'\n🔬 Investigación consumió {current_star.amountOfEnergy:.1f}% de energía (Total consumido: {energy_consumed_by_travel + current_star.amountOfEnergy:.1f}%)'
         
+        # Verificar si murió por falta de energía después de investigar
+        if self.state.energy <= 0:
+            self.state.is_alive = False
+            self.state.health = 'Muerto'
+            self.is_complete = True
+            
+            step = SimulationStep(
+                step=self.current_step,
+                current_star=current_star,
+                donkey_state=self.state,
+                action='death_by_energy_research',
+                message=message + '\n💀 El burro murió durante la investigación por falta de energía'
+            )
+            self.simulation_log.append(step)
+            return step
+        
         # Aplicar efectos de investigación (ganancia/pérdida de vida)
         life_change = current_star.lifeYearsGained - current_star.lifeYearsLost
         self.state.death_age += life_change
@@ -120,24 +161,35 @@ class DonkeySimulation:
         # Verificar si necesita comer (energía < 50%)
         action = 'travel'
         if self.state.energy < 50 and self.state.grass > 0:
-            # Calcular cuánto puede comer
+            # Actualizar estado de salud ACTUAL antes de calcular cuánto gana por kg
+            self.state.health = self._calculate_health()
             energy_gain_rate = self._get_energy_gain_rate()
-            energy_needed = 50 - self.state.energy
-            kg_needed = min(energy_needed / energy_gain_rate, self.state.grass)
             
-            # El burro solo puede usar el 50% del tiempo en la estrella para comer
-            max_eating_time = current_star.timeToEat * kg_needed
-            actual_kg_eaten = kg_needed  # Simplificación: asumimos que siempre tiene tiempo
+            # Calcular tiempo disponible para comer (50% del tiempo total en estrella)
+            # Tiempo para comer 1 kg = timeToEat
+            # Tiempo para investigar ~ timeToEat (asumimos proporcional)
+            # Tiempo total = 2 * timeToEat → 50% disponible = timeToEat
+            time_available_for_eating = current_star.timeToEat
+            
+            # Máximo kg que puede comer según tiempo disponible
+            max_kg_by_time = time_available_for_eating / current_star.timeToEat  # = 1 kg
+            
+            # Calcular cuánto DESEARÍA comer (para llegar a 50% o más)
+            energy_needed = 50 - self.state.energy
+            kg_desired = energy_needed / energy_gain_rate if energy_gain_rate > 0 else 0
+            
+            # Lo que REALMENTE puede comer está limitado por tiempo y pasto disponible
+            actual_kg_eaten = min(max_kg_by_time, kg_desired, self.state.grass)
             
             # Consumir pasto y ganar energía
             energy_gained = actual_kg_eaten * energy_gain_rate
             self.state.energy += energy_gained
             self.state.grass -= actual_kg_eaten
             
-            message += f'\n🌾 Comió {actual_kg_eaten:.2f}kg de pasto, ganó {energy_gained:.1f}% de energía'
+            message += f'\n🌾 Comió {actual_kg_eaten:.2f}kg de pasto (máx: {max_kg_by_time:.2f}kg por tiempo), ganó {energy_gained:.1f}% de energía (tasa: {energy_gain_rate:.1f}%/kg)'
             action = 'eat_and_research'
         
-        # Actualizar estado de salud basado en energía
+        # Actualizar estado de salud final basado en energía actual
         self.state.health = self._calculate_health()
         
         # Verificar si el burro murió
@@ -169,7 +221,12 @@ class DonkeySimulation:
         
         # Verificar si terminó la ruta
         if self.current_step >= len(self.route):
-            self.is_complete = True
+            # Si el burro aún está vivo en la última estrella, debe morir por agotamiento
+            if self.state.is_alive and self.state.energy > 0:
+                # No marcar como completo todavía, permitir un paso más
+                pass
+            else:
+                self.is_complete = True
         
         return step
     

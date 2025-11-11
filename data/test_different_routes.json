@@ -1,0 +1,195 @@
+{
+  "number": 1,
+  "constellations": [
+    {
+      "name": "Constelación de Prueba",
+      "starts": [
+        {
+          "id": 1,
+          "name": "Alpha-Origen",
+          "coordenadas": {"x": 100, "y": 100},
+          "linkedTo": [2, 3],
+          "distancias": [30, 80],
+          "amountOfEnergy": 5.0,
+          "timeToEat": 10.0,
+          "lifeYearsGained": 0.0,
+          "lifeYearsLost": 0.0,
+          "hypergiant": false
+        },
+        {
+          "id": 2,
+          "name": "Beta-Cercana",
+          "coordenadas": {"x": 130, "y": 100},
+          "linkedTo": [1, 4, 5],
+          "distancias": [30, 25, 50],
+          "amountOfEnergy": 8.0,
+          "timeToEat": 10.0,
+          "lifeYearsGained": 0.0,
+          "lifeYearsLost": 0.0,
+          "hypergiant": false
+        },
+        {
+          "id": 3,
+          "name": "Gamma-Lejana",
+          "coordenadas": {"x": 100, "y": 200},
+          "linkedTo": [1, 6, 7],
+          "distancias": [80, 20, 30],
+          "amountOfEnergy": 2.0,
+          "timeToEat": 10.0,
+          "lifeYearsGained": 0.0,
+          "lifeYearsLost": 0.0,
+          "hypergiant": false
+        },
+        {
+          "id": 4,
+          "name": "Delta-CercanaA",
+          "coordenadas": {"x": 155, "y": 100},
+          "linkedTo": [2, 8],
+          "distancias": [25, 20],
+          "amountOfEnergy": 12.0,
+          "timeToEat": 10.0,
+          "lifeYearsGained": 0.0,
+          "lifeYearsLost": 0.0,
+          "hypergiant": false
+        },
+        {
+          "id": 5,
+          "name": "Epsilon-CercanaB",
+          "coordenadas": {"x": 130, "y": 150},
+          "linkedTo": [2, 9],
+          "distancias": [50, 30],
+          "amountOfEnergy": 15.0,
+          "timeToEat": 10.0,
+          "lifeYearsGained": 0.0,
+          "lifeYearsLost": 0.0,
+          "hypergiant": false
+        },
+        {
+          "id": 6,
+          "name": "Zeta-LejanaA",
+          "coordenadas": {"x": 120, "y": 220},
+          "linkedTo": [3, 10, 11],
+          "distancias": [20, 15, 25],
+          "amountOfEnergy": 3.0,
+          "timeToEat": 10.0,
+          "lifeYearsGained": 0.0,
+          "lifeYearsLost": 0.0,
+          "hypergiant": false
+        },
+        {
+          "id": 7,
+          "name": "Eta-LejanaB",
+          "coordenadas": {"x": 100, "y": 230},
+          "linkedTo": [3, 12],
+          "distancias": [30, 20],
+          "amountOfEnergy": 4.0,
+          "timeToEat": 10.0,
+          "lifeYearsGained": 0.0,
+          "lifeYearsLost": 0.0,
+          "hypergiant": false
+        },
+        {
+          "id": 8,
+          "name": "Theta-Final1",
+          "coordenadas": {"x": 175, "y": 100},
+          "linkedTo": [4],
+          "distancias": [20],
+          "amountOfEnergy": 18.0,
+          "timeToEat": 10.0,
+          "lifeYearsGained": 0.0,
+          "lifeYearsLost": 0.0,
+          "hypergiant": false
+        },
+        {
+          "id": 9,
+          "name": "Iota-Final2",
+          "coordenadas": {"x": 130, "y": 180},
+          "linkedTo": [5],
+          "distancias": [30],
+          "amountOfEnergy": 20.0,
+          "timeToEat": 10.0,
+          "lifeYearsGained": 0.0,
+          "lifeYearsLost": 0.0,
+          "hypergiant": false
+        },
+        {
+          "id": 10,
+          "name": "Kappa-Final3",
+          "coordenadas": {"x": 135, "y": 235},
+          "linkedTo": [6, 13],
+          "distancias": [15, 10],
+          "amountOfEnergy": 3.5,
+          "timeToEat": 10.0,
+          "lifeYearsGained": 0.0,
+          "lifeYearsLost": 0.0,
+          "hypergiant": false
+        },
+        {
+          "id": 11,
+          "name": "Lambda-Final4",
+          "coordenadas": {"x": 145, "y": 220},
+          "linkedTo": [6, 14],
+          "distancias": [25, 15],
+          "amountOfEnergy": 4.5,
+          "timeToEat": 10.0,
+          "lifeYearsGained": 0.0,
+          "lifeYearsLost": 0.0,
+          "hypergiant": false
+        },
+        {
+          "id": 12,
+          "name": "Mu-Final5",
+          "coordenadas": {"x": 100, "y": 250},
+          "linkedTo": [7, 15],
+          "distancias": [20, 12],
+          "amountOfEnergy": 5.0,
+          "timeToEat": 10.0,
+          "lifeYearsGained": 0.0,
+          "lifeYearsLost": 0.0,
+          "hypergiant": false
+        },
+        {
+          "id": 13,
+          "name": "Nu-Bonus1",
+          "coordenadas": {"x": 145, "y": 245},
+          "linkedTo": [10],
+          "distancias": [10],
+          "amountOfEnergy": 3.0,
+          "timeToEat": 10.0,
+          "lifeYearsGained": 0.0,
+          "lifeYearsLost": 0.0,
+          "hypergiant": false
+        },
+        {
+          "id": 14,
+          "name": "Xi-Bonus2",
+          "coordenadas": {"x": 160, "y": 220},
+          "linkedTo": [11],
+          "distancias": [15],
+          "amountOfEnergy": 4.0,
+          "timeToEat": 10.0,
+          "lifeYearsGained": 0.0,
+          "lifeYearsLost": 0.0,
+          "hypergiant": false
+        },
+        {
+          "id": 15,
+          "name": "Omicron-Bonus3",
+          "coordenadas": {"x": 100, "y": 262},
+          "linkedTo": [12],
+          "distancias": [12],
+          "amountOfEnergy": 5.5,
+          "timeToEat": 10.0,
+          "lifeYearsGained": 0.0,
+          "lifeYearsLost": 0.0,
+          "hypergiant": false
+        }
+      ]
+    }
+  ],
+  "burroenergiaInicial": 100.0,
+  "estadoSalud": "Excelente",
+  "pasto": 500.0,
+  "startAge": 10.0,
+  "deathAge": 5000.0
+}

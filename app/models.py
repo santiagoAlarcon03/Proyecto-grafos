@@ -116,6 +116,7 @@ class RouteRequest(BaseModel):
     """Solicitud para calcular una ruta"""
     origin_star_id: int
     algorithm: str = Field(pattern="^(maximize_stars|minimize_cost)$")
+    destination_star_id: int = None  # Opcional: solo para minimize_cost
     
     
 class SimulationStep(BaseModel):

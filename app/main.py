@@ -176,8 +176,14 @@ async def calculate_route(request: RouteRequest):
             algorithm_name = "Maximizar Estrellas Visitadas"
         else:
             # Punto 3: Minimizar costo
-            route, stats = optimizer.minimize_cost_route(request.origin_star_id)
-            algorithm_name = "Minimizar Costo"
+            if request.destination_star_id:
+                # Con destino: usar Dijkstra puro
+                route, stats = optimizer.minimize_cost_route(request.origin_star_id, request.destination_star_id)
+                algorithm_name = f"Minimizar Costo (Dijkstra: {request.origin_star_id} → {request.destination_star_id})"
+            else:
+                # Sin destino: greedy conservador
+                route, stats = optimizer.minimize_cost_route(request.origin_star_id)
+                algorithm_name = "Minimizar Costo (Greedy)"
         
         if not route:
             return JSONResponse({

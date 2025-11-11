@@ -14,6 +14,17 @@ document.addEventListener('DOMContentLoaded', () => {
     // Calcular ruta
     document.getElementById('calculateBtn').addEventListener('click', calculateRoute);
     
+    // Mostrar/ocultar campo de destino según algoritmo
+    document.getElementById('algorithmSelect').addEventListener('change', (e) => {
+        const destinationContainer = document.getElementById('destinationContainer');
+        if (e.target.value === 'minimize_cost') {
+            destinationContainer.classList.remove('hidden');
+        } else {
+            destinationContainer.classList.add('hidden');
+            document.getElementById('destinationStar').value = '';
+        }
+    });
+    
     // Controles de simulación
     document.getElementById('startSimBtn').addEventListener('click', startSimulation);
     document.getElementById('nextStepBtn').addEventListener('click', () => simulationController.nextStep());
@@ -105,15 +116,23 @@ async function calculateRoute() {
     try {
         showLoading('Calculando ruta óptima...');
         
+        const requestBody = {
+            origin_star_id: originStarId,
+            algorithm: algorithm
+        };
+        
+        // Agregar destino solo si está definido y el algoritmo es minimize_cost
+        const destinationStarId = document.getElementById('destinationStar').value;
+        if (algorithm === 'minimize_cost' && destinationStarId && !isNaN(parseInt(destinationStarId))) {
+            requestBody.destination_star_id = parseInt(destinationStarId);
+        }
+        
         const response = await fetch('/api/calculate-route', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({
-                origin_star_id: originStarId,
-                algorithm: algorithm
-            })
+            body: JSON.stringify(requestBody)
         });
         
         if (!response.ok) {
