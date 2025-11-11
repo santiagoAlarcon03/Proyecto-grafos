@@ -11,8 +11,8 @@ class DonkeySimulation:
     
     # Factor de consumo de energía por año luz viajado
     # Puedes ajustar este valor para cambiar la dificultad
-    # 1.0 = 1% de energía por año luz
-    ENERGY_CONSUMPTION_PER_LIGHT_YEAR = 1.0
+    # 0.1 = 0.1% de energía por año luz (120 años luz = 12% energía)
+    ENERGY_CONSUMPTION_PER_LIGHT_YEAR = 0.1
     
     def __init__(self, graph: SpaceGraph, route: List[int], initial_state: DonkeyState):
         self.graph = graph

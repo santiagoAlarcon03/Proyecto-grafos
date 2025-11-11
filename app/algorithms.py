@@ -10,6 +10,9 @@ from app.models import DonkeyState, Star
 class RouteOptimizer:
     """Optimizador de rutas para el burro espacial"""
     
+    # Factor de consumo debe coincidir con simulation.py
+    ENERGY_CONSUMPTION_PER_LIGHT_YEAR = 0.1
+    
     def __init__(self, graph: SpaceGraph, initial_donkey_state: DonkeyState):
         self.graph = graph
         self.initial_state = initial_donkey_state
@@ -80,16 +83,26 @@ class RouteOptimizer:
             
             for neighbor_id, distance in neighbors:
                 if neighbor_id not in visited:
+                    # Calcular consumo de energía por el viaje
+                    travel_energy_cost = distance * self.ENERGY_CONSUMPTION_PER_LIGHT_YEAR
+                    
+                    # Verificar si tiene suficiente energía para el viaje
+                    if current_energy - travel_energy_cost <= 0:
+                        continue  # No puede realizar este viaje
+                    
                     # Calcular nuevo estado después de viajar
                     new_age = current_age + distance
                     
-                    # Poda: si el viaje mata al burro, no explorar
+                    # Poda: si el viaje mata al burro por edad, no explorar
                     if new_age >= self.initial_state.death_age:
                         continue
                     
-                    # Simular llegada a la estrella
+                    # Energía después del viaje
+                    new_energy = current_energy - travel_energy_cost
+                    
+                    # Simular llegada a la estrella e investigación
                     star = self.graph.get_star(neighbor_id)
-                    new_energy = current_energy - star.amountOfEnergy
+                    new_energy -= star.amountOfEnergy
                     new_grass = current_grass
                     
                     # Si energía < 50%, el burro come
@@ -99,7 +112,7 @@ class RouteOptimizer:
                         new_energy += kg_needed * energy_gain_per_kg
                         new_grass -= kg_needed
                     
-                    # Poda: si no tiene energía, no continuar
+                    # Poda: si no tiene energía después de todo, no continuar
                     if new_energy <= 0:
                         continue
                     
@@ -185,17 +198,26 @@ class RouteOptimizer:
             best_cost = float('inf')
             
             for neighbor_id, distance in neighbors:
-                # Verificar si el burro sobreviviría el viaje
+                # Verificar si el burro sobreviviría el viaje por edad
                 if current_age + distance >= self.initial_state.death_age:
                     continue  # Este viaje sería mortal
                 
+                # Calcular consumo de energía por el viaje
+                travel_energy_cost = distance * self.ENERGY_CONSUMPTION_PER_LIGHT_YEAR
+                
+                # Verificar si tiene suficiente energía para el viaje
+                if current_energy - travel_energy_cost <= 0:
+                    continue  # No puede realizar este viaje
+                
                 star = self.graph.get_star(neighbor_id)
                 
-                # Calcular costo del viaje
-                energy_cost = star.amountOfEnergy
+                # Calcular consumo total de energía (viaje + investigación)
+                energy_cost_travel = travel_energy_cost
+                energy_cost_research = star.amountOfEnergy
+                total_energy_cost = energy_cost_travel + energy_cost_research
                 
                 # Considerar si necesitará comer
-                energy_after_travel = current_energy - energy_cost
+                energy_after_travel = current_energy - total_energy_cost
                 eating_time = 0
                 energy_gain = 0
                 grass_consumed = 0
@@ -208,11 +230,11 @@ class RouteOptimizer:
                     eating_time = kg_needed * star.timeToEat
                 
                 # Costo total = distancia + energía consumida - ganancia por comer
-                cost = distance + energy_cost - (energy_gain * 0.1)  # Factor de peso
+                cost = distance + total_energy_cost - (energy_gain * 0.1)  # Factor de peso
                 
                 if cost < best_cost and energy_after_travel + energy_gain > 0:
                     best_cost = cost
-                    best_neighbor = (neighbor_id, distance, energy_cost, grass_consumed, energy_gain)
+                    best_neighbor = (neighbor_id, distance, total_energy_cost, grass_consumed, energy_gain)
             
             if best_neighbor is None:
                 break  # No hay vecinos viables

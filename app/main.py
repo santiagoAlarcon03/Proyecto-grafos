@@ -10,7 +10,7 @@ from pydantic import ValidationError
 import json
 from typing import Optional
 
-from app.models import ConstellationData, RouteRequest, DonkeyState, StartSimulationRequest
+from app.models import ConstellationData, RouteRequest, DonkeyState
 from app.graph_logic import SpaceGraph
 from app.algorithms import RouteOptimizer
 from app.simulation import DonkeySimulation
@@ -204,7 +204,7 @@ async def calculate_route(request: RouteRequest):
 
 
 @app.post("/api/start-simulation")
-async def start_simulation(request: StartSimulationRequest):
+async def start_simulation(request: Request):
     """
     Inicia una simulación paso a paso con una ruta calculada
     """
@@ -216,9 +216,36 @@ async def start_simulation(request: StartSimulationRequest):
             detail="Primero debe cargar un archivo JSON"
         )
     
+    # Obtener datos del body
+    try:
+        data = await request.json()
+        origin_star_id = data.get('origin_star_id')
+        route = data.get('route')
+        
+        if origin_star_id is None or route is None:
+            raise HTTPException(
+                status_code=400,
+                detail="Se requieren 'origin_star_id' y 'route'"
+            )
+            
+    except json.JSONDecodeError as e:
+        raise HTTPException(
+            status_code=400,
+            detail=f"JSON inválido: {str(e)}"
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(
+            status_code=400,
+            detail=f"Error al procesar la solicitud: {str(e)}"
+        )
+    
     # Crear estado inicial del burro
     initial_state = DonkeyState(
-        current_star_id=request.origin_star_id,
+        current_star_id=origin_star_id,
         energy=current_data.burroenergiaInicial,
         health=current_data.estadoSalud,
         grass=current_data.pasto,
@@ -229,12 +256,12 @@ async def start_simulation(request: StartSimulationRequest):
     )
     
     # Crear simulación
-    current_simulation = DonkeySimulation(current_graph, request.route, initial_state)
+    current_simulation = DonkeySimulation(current_graph, route, initial_state)
     
     return JSONResponse({
         "success": True,
         "message": "Simulación iniciada",
-        "total_steps": len(request.route)
+        "total_steps": len(route)
     })
 
 
@@ -258,9 +285,12 @@ async def simulation_next_step():
             "summary": current_simulation.get_summary()
         })
     
+    # Serializar el paso con todos los datos anidados
+    step_data = step.model_dump(mode='json')
+    
     return JSONResponse({
         "success": True,
-        "step": step.dict(),
+        "step": step_data,
         "is_complete": current_simulation.is_complete
     })
 

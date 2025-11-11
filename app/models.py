@@ -100,7 +100,7 @@ class DonkeyState(BaseModel):
     grass: float = Field(ge=0)
     age: float = Field(ge=0)
     death_age: float
-    visited_stars: List[int] = []
+    visited_stars: List[int] = Field(default_factory=list)
     is_alive: bool = True
     
     def remaining_life(self) -> float:
@@ -118,12 +118,6 @@ class RouteRequest(BaseModel):
     algorithm: str = Field(pattern="^(maximize_stars|minimize_cost)$")
     
     
-class StartSimulationRequest(BaseModel):
-    """Solicitud para iniciar una simulación"""
-    origin_star_id: int
-    route: List[int]
-
-
 class SimulationStep(BaseModel):
     """Paso de la simulación"""
     step: int
