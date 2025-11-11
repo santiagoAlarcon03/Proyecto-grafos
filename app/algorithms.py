@@ -159,7 +159,8 @@ class RouteOptimizer:
         PUNTO 3: Calcula la ruta que permite conocer la mayor cantidad de estrellas
         con el menor gasto posible. Cada estrella solo se visita UNA vez.
         
-        Usa algoritmo greedy modificado con programación dinámica.
+        Usa algoritmo de Dijkstra para encontrar los caminos más cortos entre estrellas.
+        En cada paso, selecciona la estrella no visitada más cercana que el burro pueda alcanzar.
         """
         route = [origin]
         visited = {origin}
@@ -168,6 +169,7 @@ class RouteOptimizer:
         current_age = self.initial_state.age
         current_grass = self.initial_state.grass
         total_cost = 0
+        total_dijkstra_distance = 0  # Distancia acumulada usando Dijkstra
         
         stats = {
             'stars_visited': 1,
@@ -181,44 +183,46 @@ class RouteOptimizer:
         }
         
         while True:
-            # Obtener vecinos no visitados
-            neighbors = [
-                (nid, dist) for nid, dist in self.graph.get_neighbors(current_star)
-                if nid not in visited
-            ]
+            # Obtener todas las estrellas no visitadas
+            unvisited_stars = set(self.graph.get_all_stars()) - visited
             
-            if not neighbors:
+            if not unvisited_stars:
                 break  # No hay más estrellas por visitar
             
-            # Seleccionar el vecino con menor costo considerando:
-            # - Distancia (años luz)
-            # - Consumo de energía en investigación
-            # + Posible ganancia de energía por comer
-            best_neighbor = None
+            # Usar Dijkstra para encontrar el camino más corto a cada estrella no visitada
+            best_target = None
+            best_path = None
             best_cost = float('inf')
+            best_energy_after = 0
+            best_grass_consumed = 0
+            best_energy_gain = 0
             
-            for neighbor_id, distance in neighbors:
+            for target_id in unvisited_stars:
+                # Calcular camino más corto usando Dijkstra
+                path, dijkstra_distance = self.graph.shortest_path(current_star, target_id)
+                
+                if not path or dijkstra_distance == float('inf'):
+                    continue  # No hay camino a esta estrella
+                
                 # Verificar si el burro sobreviviría el viaje por edad
-                if current_age + distance >= self.initial_state.death_age:
-                    continue  # Este viaje sería mortal
+                if current_age + dijkstra_distance >= self.initial_state.death_age:
+                    continue  # Este viaje sería mortal por edad
                 
                 # Calcular consumo de energía por el viaje
-                travel_energy_cost = distance * self.ENERGY_CONSUMPTION_PER_LIGHT_YEAR
+                travel_energy_cost = dijkstra_distance * self.ENERGY_CONSUMPTION_PER_LIGHT_YEAR
                 
                 # Verificar si tiene suficiente energía para el viaje
                 if current_energy - travel_energy_cost <= 0:
-                    continue  # No puede realizar este viaje
+                    continue  # No puede realizar este viaje por energía
                 
-                star = self.graph.get_star(neighbor_id)
+                star = self.graph.get_star(target_id)
                 
                 # Calcular consumo total de energía (viaje + investigación)
-                energy_cost_travel = travel_energy_cost
                 energy_cost_research = star.amountOfEnergy
-                total_energy_cost = energy_cost_travel + energy_cost_research
+                total_energy_cost = travel_energy_cost + energy_cost_research
                 
-                # Considerar si necesitará comer
+                # Simular si necesitará comer
                 energy_after_travel = current_energy - total_energy_cost
-                eating_time = 0
                 energy_gain = 0
                 grass_consumed = 0
                 
@@ -227,39 +231,59 @@ class RouteOptimizer:
                     kg_needed = min((50 - energy_after_travel) / energy_gain_rate, current_grass)
                     energy_gain = kg_needed * energy_gain_rate
                     grass_consumed = kg_needed
-                    eating_time = kg_needed * star.timeToEat
                 
-                # Costo total = distancia + energía consumida - ganancia por comer
-                cost = distance + total_energy_cost - (energy_gain * 0.1)  # Factor de peso
+                # Verificar que tenga energía suficiente después de todo
+                final_energy = energy_after_travel + energy_gain
+                if final_energy <= 0:
+                    continue
                 
-                if cost < best_cost and energy_after_travel + energy_gain > 0:
+                # Costo = distancia de Dijkstra + energía consumida - ganancia por comer
+                cost = dijkstra_distance + total_energy_cost - (energy_gain * 0.1)
+                
+                # Seleccionar la estrella con menor costo
+                if cost < best_cost:
                     best_cost = cost
-                    best_neighbor = (neighbor_id, distance, total_energy_cost, grass_consumed, energy_gain)
+                    best_target = target_id
+                    best_path = path
+                    best_energy_after = final_energy
+                    best_grass_consumed = grass_consumed
+                    best_energy_gain = energy_gain
             
-            if best_neighbor is None:
-                break  # No hay vecinos viables
+            if best_target is None:
+                break  # No hay estrellas viables para visitar
             
-            # Moverse al mejor vecino
-            neighbor_id, distance, energy_cost, grass_consumed, energy_gain = best_neighbor
+            # Moverse a la mejor estrella encontrada usando el camino de Dijkstra
+            # El camino incluye el origen, así que lo quitamos
+            path_to_target = best_path[1:] if len(best_path) > 1 else [best_target]
+            dijkstra_distance = self.graph.shortest_path(current_star, best_target)[1]
+            
+            # Calcular energía consumida
+            travel_energy_cost = dijkstra_distance * self.ENERGY_CONSUMPTION_PER_LIGHT_YEAR
+            star = self.graph.get_star(best_target)
+            total_energy_cost = travel_energy_cost + star.amountOfEnergy
             
             # Actualizar estado
-            current_age += distance
-            current_energy -= energy_cost
+            current_age += dijkstra_distance
+            current_energy -= total_energy_cost
             
             # Comer si es necesario
             if current_energy < 50 and current_grass > 0:
-                current_energy += energy_gain
-                current_grass -= grass_consumed
-                stats['total_grass_consumed'] += grass_consumed
+                current_energy += best_energy_gain
+                current_grass -= best_grass_consumed
+                stats['total_grass_consumed'] += best_grass_consumed
             
-            # Agregar a la ruta
-            route.append(neighbor_id)
-            visited.add(neighbor_id)
-            current_star = neighbor_id
+            # Agregar todas las estrellas del camino a la ruta (excepto las ya visitadas)
+            for star_id in path_to_target:
+                if star_id not in visited:
+                    route.append(star_id)
+                    visited.add(star_id)
+            
+            current_star = best_target
             total_cost += best_cost
+            total_dijkstra_distance += dijkstra_distance
             
-            stats['total_distance'] += distance
-            stats['total_energy_consumed'] += energy_cost
+            stats['total_distance'] += dijkstra_distance
+            stats['total_energy_consumed'] += total_energy_cost
             stats['stars_visited'] = len(visited)
             
             # Verificar si el burro sigue vivo
@@ -270,6 +294,8 @@ class RouteOptimizer:
         stats['final_energy'] = current_energy
         stats['final_age'] = current_age
         stats['final_grass'] = current_grass
+        stats['algorithm'] = 'Dijkstra'
+        stats['total_dijkstra_distance'] = total_dijkstra_distance
         
         return route, stats
     
